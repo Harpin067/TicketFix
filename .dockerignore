@@ -1,0 +1,17 @@
+# Maven/Gradle
+target
+build
+.gradle
+.mvn
+!mvnw
+!mvnw.cmd
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Otros
+node_modules
+.git
+.gitignore

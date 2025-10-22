@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ticketfix
+      MYSQL_USER: ticketfix
+      MYSQL_PASSWORD: ticketfix
+      MYSQL_ROOT_PASSWORD: root
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -proot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    # Nota: sin "ports:" para evitar conflictos con MySQL del host
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/ticketfix?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ticketfix
+      SPRING_DATASOURCE_PASSWORD: ticketfix
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SERVER_PORT: "8080"
+
+      # ==== Credenciales fijas para DEV ====
+      SPRING_SECURITY_USER_NAME: admin
+      SPRING_SECURITY_USER_PASSWORD: admin123
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
