@@ -50,6 +50,7 @@ public class DataInitializer implements CommandLineRunner {
             // Admin
             Usuario admin = Usuario.builder()
                     .nombre("Administrador")
+                    .username("admin")
                     .correo("admin@ticketfix.local")
                     .password(passwordEncoder.encode("admin123"))
                     .rol(adminRole)
@@ -60,6 +61,7 @@ public class DataInitializer implements CommandLineRunner {
             // Técnico
             Usuario tecnico = Usuario.builder()
                     .nombre("Técnico Soporte")
+                    .username("tecnico")
                     .correo("tecnico@ticketfix.local")
                     .password(passwordEncoder.encode("tecnico123"))
                     .rol(tecnicoRole)
@@ -70,6 +72,7 @@ public class DataInitializer implements CommandLineRunner {
             // Cliente
             Usuario cliente = Usuario.builder()
                     .nombre("Cliente Test")
+                    .username("cliente")
                     .correo("cliente@ticketfix.local")
                     .password(passwordEncoder.encode("cliente123"))
                     .rol(clienteRole)
