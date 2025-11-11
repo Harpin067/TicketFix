@@ -16,31 +16,34 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-      .csrf(csrf -> csrf.disable())
-      .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**").permitAll()
-        .requestMatchers("/admin/**").hasRole("ADMIN")
-        .requestMatchers("/tecnico/**").hasAnyRole("TECNICO","ADMIN")
-        .requestMatchers("/cliente/**").hasAnyRole("CLIENTE","ADMIN")
-        .requestMatchers("/tickets/**").authenticated()
-        .anyRequest().authenticated()
-      )
-      .formLogin(form -> form
-        .loginPage("/login")
-        .failureUrl("/login?error=true")
-        .defaultSuccessUrl("/admin/dashboard", true)
-        .permitAll()
-      )
-      .logout(logout -> logout
-        .logoutUrl("/logout")
-        .logoutSuccessUrl("/login?logout=true")
-        .permitAll()
-      )
-      .httpBasic(Customizer.withDefaults());
-    return http.build();
-  }
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/css/**", "/js/**", "/images/**", "/", "/login", "/register", "/h2-console/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll()
+                        .defaultSuccessUrl("/dashboard", true)
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
+                )
+                // CSRF enabled for POST /login (token must be included in form)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/h2-console/**")
+                )
+                // Allow frames for H2 console (if used) - use new method to avoid deprecation
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                );
+
+        return http.build();
+    }
 
   @Bean
   public UserDetailsService users(PasswordEncoder encoder) {
