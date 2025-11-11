@@ -1,18 +1,24 @@
 package com.example.TicketFix.config;
 
+import com.example.TicketFix.domain.Usuario;
+import com.example.TicketFix.repo.UsuarioRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Bean
@@ -46,23 +52,30 @@ public class SecurityConfig {
     }
 
   @Bean
-  public UserDetailsService users(PasswordEncoder encoder) {
-    UserDetails admin = User.withUsername("admin")
-      .password(encoder.encode("admin123"))
-      .roles("ADMIN")
-      .build();
+  public UserDetailsService userDetailsService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    return username -> {
+      Usuario usuario = usuarioRepository.findByCorreo(username)
+              .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
 
-    UserDetails tecnico = User.withUsername("tecnico")
-      .password(encoder.encode("tecnico123"))
-      .roles("TECNICO")
-      .build();
+      List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+      if (usuario.getRol() != null && usuario.getRol().getNombre() != null) {
+        String roleName = usuario.getRol().getNombre();
+        if (!roleName.startsWith("ROLE_")) {
+          roleName = "ROLE_" + roleName;
+        }
+        authorities.add(new SimpleGrantedAuthority(roleName));
+      }
 
-    UserDetails cliente = User.withUsername("cliente")
-      .password(encoder.encode("cliente123"))
-      .roles("CLIENTE")
-      .build();
-
-    return new InMemoryUserDetailsManager(admin, tecnico, cliente);
+      return User
+              .withUsername(usuario.getCorreo())
+              .password(usuario.getPassword())
+              .authorities(authorities)
+              .accountExpired(false)
+              .accountLocked(false)
+              .credentialsExpired(false)
+              .disabled(!Boolean.TRUE.equals(usuario.getActivo()))
+              .build();
+    };
   }
 
   @Bean
