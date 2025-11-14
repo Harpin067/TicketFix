@@ -15,7 +15,8 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
-    # Nota: sin "ports:" para evitar conflictos con MySQL del host
+    ports:
+      - "3307:3306"   
 
   app:
     build: .

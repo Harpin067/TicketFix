@@ -28,7 +28,7 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "creador_id")
-    private Usuario creador;
+    private Usuario creador;      // <-- aquí está tu "cliente"
 
     @ManyToOne
     @JoinColumn(name = "tecnico_id")
